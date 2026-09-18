@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarGPT</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;min-height:100vh;background:linear-gradient(135deg,#101820,#273c75,#487eb0);color:#fff}
+.wrap{max-width:1000px;margin:auto;padding:22px}
+.header{padding:25px;border-radius:28px;background:rgba(255,255,255,.12);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,.2);box-shadow:0 15px 45px rgba(0,0,0,.25)}
+.logo{font-size:34px;font-weight:800}.sub{margin-top:7px;opacity:.8}
+.badge{display:inline-block;margin-top:14px;padding:8px 12px;border-radius:20px;background:rgba(255,255,255,.15);font-size:13px}
+.quick{display:flex;gap:9px;flex-wrap:wrap;margin:15px 0}
+.quick button{border:0;border-radius:18px;padding:10px 14px;background:rgba(255,255,255,.92);color:#1b3045;cursor:pointer;font-weight:700}
+.chat{height:58vh;overflow-y:auto;padding:8px}
+.msg{display:flex;margin:12px 0}.user{justify-content:flex-end}
+.bubble{max-width:78%;padding:14px 17px;border-radius:20px;line-height:1.5;white-space:pre-wrap}
+.bot .bubble{background:rgba(255,255,255,.96);color:#182638;border-bottom-left-radius:5px}
+.user .bubble{background:#00a8ff;color:#fff;border-bottom-right-radius:5px}
+.composer{display:flex;gap:10px;margin-top:12px;padding:11px;border-radius:20px;background:rgba(255,255,255,.96)}
+input{flex:1;border:0;outline:0;padding:13px;font-size:16px;background:transparent}
+.send{border:0;border-radius:15px;padding:0 22px;background:#00a8ff;color:white;font-weight:700;cursor:pointer}
+.send:disabled{opacity:.6}
+.footer{text-align:center;padding:14px;font-size:12px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">🚗 CarGPT</div>
+    <div class="sub">Your AI assistant for cars & automobiles</div>
+    <div class="badge">🚘 Cars • Engines • EVs • Maintenance • Safety • More</div>
+  </div>
+
+  <div class="quick">
+    <button onclick="ask('Explain the difference between petrol and diesel cars')">⛽ Fuel</button>
+    <button onclick="ask('What is an electric car and how does it work?')">🔋 EV</button>
+    <button onclick="ask('What are the basic parts of a car engine?')">⚙️ Engine</button>
+    <button onclick="ask('What should I check before buying a used car?')">🚘 Buying</button>
+  </div>
+
+  <div id="chat" class="chat">
+    <div class="msg bot"><div class="bubble">👋 Hi! I'm CarGPT. Ask me anything about cars and automobiles. 🚗</div></div>
+  </div>
+
+  <div class="composer">
+    <input id="message" placeholder="Ask a car-related question..." onkeydown="if(event.key==='Enter')sendMessage()">
+    <button id="send" class="send" onclick="sendMessage()">Send</button>
+  </div>
+  <div class="footer">CarGPT • Powered by Gemini API • Automobile information assistant</div>
+</div>
+
+<script>
+const chat=document.getElementById("chat");
+const input=document.getElementById("message");
+const send=document.getElementById("send");
+
+function addMessage(text,type){
+  const row=document.createElement("div");
+  row.className="msg "+type;
+  const bubble=document.createElement("div");
+  bubble.className="bubble";
+  bubble.textContent=text;
+  row.appendChild(bubble);
+  chat.appendChild(row);
+  chat.scrollTop=chat.scrollHeight;
+}
+function ask(text){input.value=text;sendMessage();}
+async function sendMessage(){
+  const text=input.value.trim();
+  if(!text)return;
+  addMessage(text,"user");
+  input.value="";
+  send.disabled=true;
+  send.textContent="...";
+  try{
+    const response=await fetch("/chat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message:text})
+    });
+    const data=await response.json();
+    addMessage(data.reply || "No response received.","bot");
+  }catch(error){
+    addMessage("Sorry, something went wrong. Check your terminal and Gemini API key.","bot");
+  }finally{
+    send.disabled=false;
+    send.textContent="Send";
+    input.focus();
+  }
+}
+</script>
+</body>
+</html>
